@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
@@ -21,7 +21,7 @@ jobs:
         pip install flake8-black
         pip install pylint
         pip install mypy
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi        
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         pip install pylint
     - name: Lint with flake8
       run: |
@@ -32,4 +32,4 @@ jobs:
     - name: Analysing the code with mypy
       run: |
         mypy src
-        
+
