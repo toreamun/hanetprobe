@@ -23,7 +23,7 @@ import dns_probe
 import ping_probe
 import publish
 
-VERSION: Final = "0.9.1"
+VERSION: Final = "0.9.2"
 
 CONF_PROBE_DNS: Final = "dns"
 CONF_PROBE_PING: Final = "ping"
