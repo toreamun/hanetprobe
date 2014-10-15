@@ -114,6 +114,8 @@ logging.basicConfig(format="%(levelname)7s: %(message)s")
 
 logger = logging.getLogger()
 
+shutdown_event = asyncio.Event()
+
 
 class ProbeService:  # pylint: disable=too-few-public-methods
     """Probe service."""
@@ -394,10 +396,15 @@ def validate_config(config: box.Box) -> None:
 
 async def shutdown(sig: signal.Signals, loop: AbstractEventLoop):
     """Cleanup tasks tied to the service's shutdown."""
+
+    if sig != signal.SIGHUP:
+        shutdown_event.set()
+
     logger.info(
-        "Received exit signal %s from parent process with pid %s",
+        "Received %s signal from parent process %s. %s.",
         sig.name,
         os.getppid(),
+        "Restarting" if sig == signal.SIGHUP else "Shutting down",
     )
 
     tasks = [
@@ -405,12 +412,13 @@ async def shutdown(sig: signal.Signals, loop: AbstractEventLoop):
         for t in asyncio.all_tasks(loop=loop)
         if t is not asyncio.current_task(loop=loop)
     ]
-    logger.info("Cancelling %d outstanding tasks", len(tasks))
-    for task in tasks:
-        task.cancel()
 
-    await asyncio.gather(*tasks, return_exceptions=True)
-    logger.debug("All tasks cancelled.")
+    if tasks:
+        logger.info("Cancelling %d outstanding tasks", len(tasks))
+        for task in tasks:
+            task.cancel()
+
+        logger.debug("All tasks cancelled.")
 
 
 async def main() -> None:
@@ -424,24 +432,28 @@ async def main() -> None:
     )
     args = parser.parse_args()
 
-    try:
-        config = load_configuration(args.config)
-        logger.debug("Configuration successfully loaded.")
-    except confuse.ConfigError as err:
-        logger.error("Configuration error: %s", err)
-    else:
-        logger.setLevel(config.service.log_level)
+    loop = asyncio.get_running_loop()
+    for sig in signal.SIGHUP, signal.SIGTERM, signal.SIGINT:
+        loop.add_signal_handler(
+            sig, lambda s=sig: loop.create_task(shutdown(s, loop))  # type: ignore
+        )
 
-        loop = asyncio.get_running_loop()
-        signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-        for sig in signals:
-            loop.add_signal_handler(
-                sig, lambda s=sig: loop.create_task(shutdown(s, loop))
-            )
+    while shutdown_event.is_set() is False:
+        try:
+            config = load_configuration(args.config)
+            logger.debug("Configuration successfully loaded.")
+        except confuse.ConfigError as err:
+            logger.error("Configuration error: %s", err)
+            shutdown_event.set()
+        else:
+            logger.setLevel(config.service.log_level)
 
-        service = ProbeService(loop, config)
-        await service.run()
-        logger.info("Successfully shutdown.")
+            logger.info("Starting probe service...")
+
+            service = ProbeService(loop, config)
+            await service.run()
+
+            logger.info("Successfully stopped.")
 
 
 if __name__ == "__main__":
