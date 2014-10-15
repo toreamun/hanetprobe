@@ -69,8 +69,9 @@ def slugify(text: str | None, *, separator: str = "_") -> str:
 class HassEntity:
     """Home Assistant Entity."""
 
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
+        *,
         mqtt: asyncio_paho.AsyncioPahoClient,
         component: str,
         node_id: str,
@@ -163,99 +164,99 @@ class ProbePublisher:
         base_object_id = f"{probe.probe_type} {probe.name}"
         self._sensors = {
             SensorCode.RTT: HassEntity(
-                mqtt,
-                HASS_COMPONENT_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.RTT.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.RTT.value}",
+                hass_config={
                     HASS_CONF_ICON: ICON_TIMER,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_TIME_MILLISECONDS,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
             SensorCode.RTT_AVERAGE: HassEntity(
-                mqtt,
-                HASS_COMPONENT_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.RTT_AVERAGE.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.RTT_AVERAGE.value}",
+                hass_config={
                     HASS_CONF_ICON: ICON_TIMER,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_TIME_MILLISECONDS,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
             SensorCode.AVERAGE_LOSS: HassEntity(
-                mqtt,
-                HASS_COMPONENT_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.AVERAGE_LOSS.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.AVERAGE_LOSS.value}",
+                hass_config={
                     HASS_CONF_ICON: ICON_PACKET_LOSS,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_PERCENTAGE,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
             SensorCode.JITTER: HassEntity(
-                mqtt,
-                HASS_COMPONENT_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.JITTER.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.JITTER.value}",
+                hass_config={
                     HASS_CONF_ICON: ICON_TIMER,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_TIME_MILLISECONDS,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
             SensorCode.JITTER_GRADE: HassEntity(
-                mqtt,
-                HASS_COMPONENT_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.JITTER_GRADE.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.JITTER_GRADE.value}",
+                hass_config={
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_PERCENTAGE,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
             SensorCode.CONNECTIVITY: HassEntity(
-                mqtt,
-                HASS_COMPONENT_BINARY_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.CONNECTIVITY.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_BINARY_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.CONNECTIVITY.value}",
+                hass_config={
                     HASS_CONF_DEVICE_CLASS: HASS_DEVICE_CLASS_CONNECTIVITY,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
             SensorCode.BYTES_SENT: HassEntity(
-                mqtt,
-                HASS_COMPONENT_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.BYTES_SENT.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.BYTES_SENT.value}",
+                hass_config={
                     HASS_CONF_ICON: ICON_NETWORK_UPLOAD,
                     HASS_CONF_ENTITY_CATEGORY: HASS_ENTITY_CATEGORY_DIAGNOSTIC,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_DATA_BYTES,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_TOTAL_INCREASING,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
             SensorCode.BYTES_RECEIVED: HassEntity(
-                mqtt,
-                HASS_COMPONENT_SENSOR,
-                node_id,
-                f"{base_object_id} {SensorCode.BYTES_RECEIVED.value}",
-                {
+                mqtt=mqtt,
+                component=HASS_COMPONENT_SENSOR,
+                node_id=node_id,
+                object_id=f"{base_object_id} {SensorCode.BYTES_RECEIVED.value}",
+                hass_config={
                     HASS_CONF_ICON: ICON_NETWORK_DOWNLOAD,
                     HASS_CONF_ENTITY_CATEGORY: HASS_ENTITY_CATEGORY_DIAGNOSTIC,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_DATA_BYTES,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_TOTAL_INCREASING,
                 },
-                update_interval,
+                update_interval=update_interval,
             ),
         }
 
@@ -363,14 +364,14 @@ class CompositeAllConnectedPublisher:
 
         update_interval = min(p.probe_config.interval for p in probes)
         self._sensor = HassEntity(
-            mqtt,
-            HASS_COMPONENT_BINARY_SENSOR,
-            node_id,
-            f"all connected {pub_config.name}",
-            {
+            mqtt=mqtt,
+            component=HASS_COMPONENT_BINARY_SENSOR,
+            node_id=node_id,
+            object_id=f"all connected {pub_config.name}",
+            hass_config={
                 HASS_CONF_DEVICE_CLASS: HASS_DEVICE_CLASS_CONNECTIVITY,
             },
-            update_interval,
+            update_interval=update_interval,
         )
 
     async def send_configuration(self) -> None:
