@@ -1,10 +1,12 @@
 """Probe service."""
+
 from __future__ import annotations
 
 import argparse
 import asyncio
 import collections
 import logging
+import os
 import platform
 import signal
 from asyncio.events import AbstractEventLoop
@@ -88,7 +90,7 @@ CONF_TEMPLATE: Final = {
                 "publish-precision": confuse.Optional(
                     int, DEFAULT_PROBE_PUBLISH_PRECISION
                 ),
-                "privileged": confuse.Optional(bool, DEFAULT_PROBE_PING_PRIVILEGED)
+                "privileged": confuse.Optional(bool, DEFAULT_PROBE_PING_PRIVILEGED),
             }
         ),
     },
@@ -258,6 +260,12 @@ class ProbeService:  # pylint: disable=too-few-public-methods
                     port=self._config.mqtt.port,
                 )
 
+                logger.info(
+                    "Connected to MQTT server %s on port %d",
+                    self._config.mqtt.host,
+                    self._config.mqtt.port,
+                )
+
                 # Paho mqtt will reconnect automatic when first connected
                 # add callbacks after initial connect
                 self._mqtt.on_disconnect = (
@@ -386,7 +394,11 @@ def validate_config(config: box.Box) -> None:
 
 async def shutdown(sig: signal.Signals, loop: AbstractEventLoop):
     """Cleanup tasks tied to the service's shutdown."""
-    logger.info("Received exit signal %s", sig.name)
+    logger.info(
+        "Received exit signal %s from parent process with pid %s",
+        sig.name,
+        os.getppid(),
+    )
 
     tasks = [
         t
@@ -414,6 +426,7 @@ async def main() -> None:
 
     try:
         config = load_configuration(args.config)
+        logger.debug("Configuration successfully loaded.")
     except confuse.ConfigError as err:
         logger.error("Configuration error: %s", err)
     else:
