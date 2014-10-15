@@ -75,8 +75,8 @@ class HassEntity:
         component: str,
         node_id: str,
         object_id: str,
+        hass_config: dict[str, Any],
         update_interval: float | None = None,
-        hass_config: dict[str, Any] = None,
     ) -> None:
         """Initialize HassEntity."""
         self._mqtt = mqtt
@@ -167,95 +167,95 @@ class ProbePublisher:
                 HASS_COMPONENT_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.RTT.value}",
-                update_interval,
                 {
                     HASS_CONF_ICON: ICON_TIMER,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_TIME_MILLISECONDS,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
+                update_interval,
             ),
             SensorCode.RTT_AVERAGE: HassEntity(
                 mqtt,
                 HASS_COMPONENT_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.RTT_AVERAGE.value}",
-                update_interval,
                 {
                     HASS_CONF_ICON: ICON_TIMER,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_TIME_MILLISECONDS,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
+                update_interval,
             ),
             SensorCode.AVERAGE_LOSS: HassEntity(
                 mqtt,
                 HASS_COMPONENT_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.AVERAGE_LOSS.value}",
-                update_interval,
                 {
                     HASS_CONF_ICON: ICON_PACKET_LOSS,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_PERCENTAGE,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
+                update_interval,
             ),
             SensorCode.JITTER: HassEntity(
                 mqtt,
                 HASS_COMPONENT_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.JITTER.value}",
-                update_interval,
                 {
                     HASS_CONF_ICON: ICON_TIMER,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_TIME_MILLISECONDS,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
+                update_interval,
             ),
             SensorCode.JITTER_GRADE: HassEntity(
                 mqtt,
                 HASS_COMPONENT_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.JITTER_GRADE.value}",
-                update_interval,
                 {
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_PERCENTAGE,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_MEASUREMENT,
                 },
+                update_interval,
             ),
             SensorCode.CONNECTIVITY: HassEntity(
                 mqtt,
                 HASS_COMPONENT_BINARY_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.CONNECTIVITY.value}",
-                update_interval,
                 {
                     HASS_CONF_DEVICE_CLASS: HASS_DEVICE_CLASS_CONNECTIVITY,
                 },
+                update_interval,
             ),
             SensorCode.BYTES_SENT: HassEntity(
                 mqtt,
                 HASS_COMPONENT_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.BYTES_SENT.value}",
-                update_interval,
                 {
                     HASS_CONF_ICON: ICON_NETWORK_UPLOAD,
                     HASS_CONF_ENTITY_CATEGORY: HASS_ENTITY_CATEGORY_DIAGNOSTIC,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_DATA_BYTES,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_TOTAL_INCREASING,
                 },
+                update_interval,
             ),
             SensorCode.BYTES_RECEIVED: HassEntity(
                 mqtt,
                 HASS_COMPONENT_SENSOR,
                 node_id,
                 f"{base_object_id} {SensorCode.BYTES_RECEIVED.value}",
-                update_interval,
                 {
                     HASS_CONF_ICON: ICON_NETWORK_DOWNLOAD,
                     HASS_CONF_ENTITY_CATEGORY: HASS_ENTITY_CATEGORY_DIAGNOSTIC,
                     HASS_CONF_UNIT_OF_MEASUREMENT: HASS_UNIT_DATA_BYTES,
                     HASS_CONF_STATE_CLASS: HASS_STATE_CLASS_TOTAL_INCREASING,
                 },
+                update_interval,
             ),
         }
 
@@ -367,10 +367,10 @@ class CompositeAllConnectedPublisher:
             HASS_COMPONENT_BINARY_SENSOR,
             node_id,
             f"all connected {pub_config.name}",
-            update_interval,
             {
                 HASS_CONF_DEVICE_CLASS: HASS_DEVICE_CLASS_CONNECTIVITY,
             },
+            update_interval,
         )
 
     async def send_configuration(self) -> None:

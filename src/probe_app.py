@@ -300,7 +300,6 @@ class ProbeService:  # pylint: disable=too-few-public-methods
             publish.HASS_COMPONENT_BINARY_SENSOR,
             self._node_id,
             common.APPNAME,
-            None,
             {
                 publish.HASS_CONF_DEVICE_CLASS: publish.HASS_DEVICE_CLASS_CONNECTIVITY,
                 publish.HASS_CONF_ENTITY_CATEGORY: publish.HASS_ENTITY_CATEGORY_DIAGNOSTIC,
@@ -312,6 +311,7 @@ class ProbeService:  # pylint: disable=too-few-public-methods
                     publish.HASS_ATTR_SW_VERSION: VERSION,
                 },
             },
+            None,
         )
 
         self._configure_mqtt(service_online_sensor.state_topic)
