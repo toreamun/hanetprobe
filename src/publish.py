@@ -414,4 +414,4 @@ def create_composite_publisher(
             )
     if probes:
         return CompositeAllConnectedPublisher(publisher_config, probes, mqtt, node_id)
-    raise Exception("Probes % not found")
+    raise ValueError("Probes % not found")
