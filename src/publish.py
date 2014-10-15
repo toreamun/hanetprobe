@@ -69,7 +69,7 @@ def slugify(text: str | None, *, separator: str = "_") -> str:
 class HassEntity:
     """Home Assistant Entity."""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments
         self,
         *,
         mqtt: asyncio_paho.AsyncioPahoClient,

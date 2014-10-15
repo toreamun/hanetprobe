@@ -296,11 +296,11 @@ class ProbeService:  # pylint: disable=too-few-public-methods
             return
 
         service_online_sensor = publish.HassEntity(
-            self._mqtt,
-            publish.HASS_COMPONENT_BINARY_SENSOR,
-            self._node_id,
-            common.APPNAME,
-            {
+            mqtt=self._mqtt,
+            component=publish.HASS_COMPONENT_BINARY_SENSOR,
+            node_id=self._node_id,
+            object_id=common.APPNAME,
+            hass_config={
                 publish.HASS_CONF_DEVICE_CLASS: publish.HASS_DEVICE_CLASS_CONNECTIVITY,
                 publish.HASS_CONF_ENTITY_CATEGORY: publish.HASS_ENTITY_CATEGORY_DIAGNOSTIC,
                 publish.HASS_CONF_DEVICE: {
@@ -311,7 +311,7 @@ class ProbeService:  # pylint: disable=too-few-public-methods
                     publish.HASS_ATTR_SW_VERSION: VERSION,
                 },
             },
-            None,
+            update_interval=None,
         )
 
         self._configure_mqtt(service_online_sensor.state_topic)
