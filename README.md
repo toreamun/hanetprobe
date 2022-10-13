@@ -129,7 +129,7 @@ probes:
 - payload-size: ping packet size. Defaults to 56.
 
 ## Grafana
-[Grafana](https://github.com/hassio-addons/addon-grafana) with [InfluxDB](https://github.com/hassio-addons/addon-influxdb) is a great way of visualizing data from the probe. Here are some examples of comparing Telia and Telenor 4G Fixed Wireless Access connectivity to Cloudflare DNS. Boths modem/antennas was located at the same place pointing at the same shared tower.
+[Grafana](https://github.com/hassio-addons/addon-grafana) with [InfluxDB](https://github.com/hassio-addons/addon-influxdb) is a great way of visualizing data from the probe. Here are some examples of comparing [Telia Trådløst bredbånd](https://www.telia.no/internett/tradlost-bredband/) and [Telenor Trådløst bredbånd](https://www.telenor.no/privat/internett/tradlost-bredband/) Fixed Wireless Access 4G connectivity to Cloudflare DNS. Boths modem/antennas was located at the same place pointing at the same shared tower.
 
 ![image](https://user-images.githubusercontent.com/12134766/195715672-785f2f62-9d8a-44b5-ad41-52aa145b1b01.png)
 
