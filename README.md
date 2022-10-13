@@ -1,3 +1,7 @@
+[![License](https://img.shields.io/github/license/toreamun/hanetprobe?style=for-the-badge)](LICENSE)
+![Project Maintenance](https://img.shields.io/badge/maintainer-Tore%20Amundsen%20%40toreamun-blue.svg?style=for-the-badge)
+[![buy me a coffee](https://img.shields.io/badge/If%20you%20like%20it-Buy%20me%20a%20coffee-orange.svg?style=for-the-badge)](https://www.buymeacoffee.com/toreamun)
+
 # Home Assistant net probe
 Network uptime monitor publishing to Home Assistant MQTT discovery.
 
