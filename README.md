@@ -25,6 +25,10 @@ probes:
       target-adr: 8.8.8.8
 ```
 
+You will find the the probe as a device in MQTT integration:
+![image](https://user-images.githubusercontent.com/12134766/195714262-ff6e3153-144e-4a99-815c-bcb5ac2cf61e.png)
+
+
 ## Running
 ### Using docker
 You can run the application using docker. 
