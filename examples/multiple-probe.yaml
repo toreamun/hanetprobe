@@ -1,0 +1,18 @@
+service:
+  id: router-probe
+  name: my-net-probe
+  log-level: DEBUG
+
+mqtt:
+  host: 192.168.1.10
+
+probes:
+  dns:
+    - name: google
+      target-adr: 8.8.8.8
+    - name: cloudflare
+      target-adr: 1.1.1.1
+      interval: 10
+      timeout: 0.5
+      query-names: google.com microsoft.com
+      history-len: 50

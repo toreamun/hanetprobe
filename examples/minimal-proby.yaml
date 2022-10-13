@@ -1,0 +1,7 @@
+mqtt:
+  host: 192.168.1.10
+
+probes:
+  dns:
+    - name: google
+      target-adr: 8.8.8.8

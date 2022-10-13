@@ -1,0 +1,8 @@
+version: "3"
+services:
+  probe:
+    container_name: ha-net-probe
+    image: ghcr.io/toreamun/hanetprobe:master
+    restart: unless-stopped
+    volumes:
+      - ./probe.yaml:/app/config/probe.yaml
