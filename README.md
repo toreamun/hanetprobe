@@ -127,3 +127,16 @@ probes:
 - history-len: length of history (used to calculate jitter and averate rtt and loss). Defaults to  100.
 - publish-precision: decimals in published values. Defaults to 1.
 - payload-size: ping packet size. Defaults to 56.
+
+## Grafana
+[Grafana](https://github.com/hassio-addons/addon-grafana) with [InfluxDB](https://github.com/hassio-addons/addon-influxdb) is a great way of visualizing data from the probe. Here are some examples of comparing Telia and Telenor 4G Fixed Wireless Access connectivity to Cloudflare DNS. Boths modem/antennas was located at the same place pointing at the same shared tower.
+
+![image](https://user-images.githubusercontent.com/12134766/195715672-785f2f62-9d8a-44b5-ad41-52aa145b1b01.png)
+
+![image](https://user-images.githubusercontent.com/12134766/195716675-fc58d478-dfe3-4605-b547-4e892c1d0c05.png)
+
+![image](https://user-images.githubusercontent.com/12134766/195716790-eb0d0fb9-3c43-439c-99f5-8c75ad205937.png)
+
+
+
+
