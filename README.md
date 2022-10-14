@@ -11,7 +11,7 @@ Supports ICMP ping and DNS lookup. Sensors publishes round-trip-time, jitter and
 You can use this application to create multiple probes that reports to [Home Assistant](https://www.home-assistant.io) using [MQTT](https://mqtt.org/). 
 Home Assistant [MQTT integration](https://www.home-assistant.io/integrations/mqtt/) must be configured with discovery enabled (default).
 
-A configuration file has to be created. See details [bellow](#configuration)
+A configuration file has to be created. See details [below](#configuration)
 Example of minimal configuration file (default config filename is probe.yaml):
 
 
