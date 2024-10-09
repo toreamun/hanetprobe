@@ -25,7 +25,7 @@ class PingProbe(common.ProbeBase):
             count=1,
             timeout=self.probe_config.timeout,
             payload_size=self.probe_config.payload_size,
-            privileged=False,
+            privileged=self.probe_config.privileged,
         )
 
         packet_size = self.probe_config.payload_size + 8

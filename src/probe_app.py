@@ -21,7 +21,7 @@ import dns_probe
 import ping_probe
 import publish
 
-VERSION: Final = "0.9.0"
+VERSION: Final = "0.9.1"
 
 CONF_PROBE_DNS: Final = "dns"
 CONF_PROBE_PING: Final = "ping"
@@ -30,6 +30,7 @@ DEFAULT_LOG_LEVEL: Final = "INFO"
 DEFAULT_MQTT_PORT: Final = 1883
 DEFAULT_PROBE_PUBLISH_PRECISION: Final = 1
 DEFAULT_PROBE_PING_PAYLOAD_SIZE: Final = 56
+DEFAULT_PROBE_PING_PRIVILEGED: Final = False
 DEFAULT_PROBE_INTERVAL: Final = 1.0
 DEFAULT_PROBE_TIMEOUT: Final = 1.0
 DEFAULT_QUERY_NAMES: list[str] = [
@@ -87,6 +88,7 @@ CONF_TEMPLATE: Final = {
                 "publish-precision": confuse.Optional(
                     int, DEFAULT_PROBE_PUBLISH_PRECISION
                 ),
+                "privileged": confuse.Optional(bool, DEFAULT_PROBE_PING_PRIVILEGED)
             }
         ),
     },
