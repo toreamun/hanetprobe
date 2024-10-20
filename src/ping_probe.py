@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 
+import box
 import icmplib  # type: ignore
 
 import common
@@ -13,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 class PingProbe(common.ProbeBase):
     """Ping probe."""
+
+    def __init__(self, probe_config: box.Box) -> None:
+        """Initialize DnsProbe."""
+        super().__init__(logger, probe_config)
 
     @property
     def probe_type(self) -> str:

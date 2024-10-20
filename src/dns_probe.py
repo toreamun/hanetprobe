@@ -21,7 +21,7 @@ class DnsProbe(common.ProbeBase):
 
     def __init__(self, probe_config: box.Box) -> None:
         """Initialize DnsProbe."""
-        super().__init__(probe_config)
+        super().__init__(logger, probe_config)
         self._query_data = [
             self._make_query_data(qname) for qname in probe_config.query_names
         ]
