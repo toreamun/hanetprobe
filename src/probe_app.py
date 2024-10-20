@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import collections
 import logging
+import logging.config
 import os
 import platform
 import signal
@@ -17,13 +18,14 @@ import asyncio_paho
 import box
 import confuse  # type: ignore
 import paho.mqtt.client as paho  # type: ignore
+import yaml
 
 import common
 import dns_probe
 import ping_probe
 import publish
 
-VERSION: Final = "0.9.2"
+VERSION: Final = "0.9.3"
 
 CONF_PROBE_DNS: Final = "dns"
 CONF_PROBE_PING: Final = "ping"
@@ -55,7 +57,8 @@ CONF_TEMPLATE: Final = {
         "id": confuse.Optional(str, default=platform.node()),
         "name": confuse.Optional(str, default=DEFAULT_SERVICE_NAME),
         "log-level": confuse.Choice(
-            ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], default=DEFAULT_LOG_LEVEL
+            ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", None],
+            default=None,
         ),
     },
     "mqtt": {
@@ -107,6 +110,7 @@ CONF_TEMPLATE: Final = {
             }
         ),
     },
+    "logging": confuse.Optional({}, default=None),
 }
 
 
@@ -353,6 +357,20 @@ def load_configuration(config_file: str) -> box.Box:
     config.set_file(config_file)
     template_config = config.get(CONF_TEMPLATE)
 
+    raw_config = yaml.safe_load(config.dump())
+    if "logging" in raw_config:
+        template_config["logging"] = raw_config["logging"]
+        if (
+            "log-level" in template_config.service
+            and template_config.service["log-level"] is not None
+        ):
+            logger.warning(
+                "Logging configuration found in config file. Ignoring log-level setting %s at service setting.",
+                template_config.service["log-level"],
+            )
+    else:
+        template_config.service.log_level = DEFAULT_LOG_LEVEL
+
     config = box.Box(template_config, frozen_box=True)
     validate_config(config)
 
@@ -441,19 +459,32 @@ async def main() -> None:
     while shutdown_event.is_set() is False:
         try:
             config = load_configuration(args.config)
-            logger.debug("Configuration successfully loaded.")
         except confuse.ConfigError as err:
             logger.error("Configuration error: %s", err)
             shutdown_event.set()
         else:
-            logger.setLevel(config.service.log_level)
+            try:
+                # Try to load logging configuration from config file if config exists
+                if config.logging is not None:
+                    logging.config.dictConfig(config.logging)
+                    logger.debug("Logging configuration updated from config file.")
+                else:
+                    logger.setLevel(config.service.log_level)
+                    logger.debug(
+                        "Using default logging configuration with level %s.",
+                        logger.level,
+                    )
 
-            logger.info("Starting probe service...")
+            except (ValueError, TypeError, AttributeError, ImportError) as err:
+                logger.error("Logging configuration error: %s", err)
+                shutdown_event.set()
+            else:
+                logger.info("Starting probe service...")
 
-            service = ProbeService(loop, config)
-            await service.run()
+                service = ProbeService(loop, config)
+                await service.run()
 
-            logger.info("Successfully stopped.")
+                logger.info("Successfully stopped.")
 
 
 if __name__ == "__main__":
