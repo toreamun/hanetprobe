@@ -5,3 +5,4 @@ icmplib~=3.0
 python-box~=6.0
 python-slugify
 types-python-slugify
+types-PyYAML
