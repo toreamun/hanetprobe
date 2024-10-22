@@ -365,7 +365,10 @@ def load_configuration(config_file: str) -> box.Box:
             and template_config.service["log-level"] is not None
         ):
             logger.warning(
-                "Logging configuration found in config file. Ignoring log-level setting %s at service setting.",
+                (
+                    "Logging configuration found in config file. Ignoring log-level "
+                    "setting %s from service setting."
+                ),
                 template_config.service["log-level"],
             )
     else:
