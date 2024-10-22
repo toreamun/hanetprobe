@@ -1,4 +1,5 @@
 """Common module."""
+
 from __future__ import annotations
 
 import asyncio
@@ -20,9 +21,6 @@ ProbeResult = collections.namedtuple(
 )
 
 
-logger = logging.getLogger(__name__)
-
-
 @dataclass
 class ProbeState:
     """Probe state data class."""
@@ -37,8 +35,9 @@ class ProbeState:
 class ProbeBase(ABC):
     """Probe base class."""
 
-    def __init__(self, probe_config: box.Box) -> None:
+    def __init__(self, probe_logger: logging.Logger, probe_config: box.Box) -> None:
         """Initialize Probe."""
+        self._logger = probe_logger
         self.probe_config = probe_config
         self._time_previous = 0.0
         self._hist: list[None | float] = []
@@ -98,7 +97,7 @@ class ProbeBase(ABC):
         elapsed = time.perf_counter() - self._time_previous
         if elapsed < interval:
             sleep_time = interval - elapsed
-            logger.debug(
+            self._logger.debug(
                 "%s-probe %s: sleep %f sec.", self.probe_type, self.name, sleep_time
             )
             await asyncio.sleep(sleep_time)
@@ -107,10 +106,12 @@ class ProbeBase(ABC):
         try:
             self.state.current = await self._probe_action()
         except CancelledError:
-            logger.debug("%s-probe %s: probe cancelled.", self.probe_type, self.name)
+            self._logger.debug(
+                "%s-probe %s: probe cancelled.", self.probe_type, self.name
+            )
             raise
         except Exception as ex:  # pylint: disable=broad-except
-            logger.warning(
+            self._logger.warning(
                 "%s-probe %s: Error executing probe action: %s",
                 self.probe_type,
                 self.name,

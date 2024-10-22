@@ -1,8 +1,10 @@
 """Ping-probe module."""
+
 from __future__ import annotations
 
 import logging
 
+import box
 import icmplib  # type: ignore
 
 import common
@@ -12,6 +14,10 @@ logger = logging.getLogger(__name__)
 
 class PingProbe(common.ProbeBase):
     """Ping probe."""
+
+    def __init__(self, probe_config: box.Box) -> None:
+        """Initialize DnsProbe."""
+        super().__init__(logger, probe_config)
 
     @property
     def probe_type(self) -> str:
@@ -32,18 +38,28 @@ class PingProbe(common.ProbeBase):
 
         if ping_result.packet_loss:
             logger.info(
-                "ping-probe %s: timed out after %.1f sec.",
+                "ping-probe %s: %s ping timed out after %.1f sec.",
                 self.name,
+                ping_result.address,
                 self.probe_config.interval,
+            )
+            return common.ProbeResult(None, packet_size, 0)
+
+        if len(ping_result.rtts) == 0:
+            logger.warning(
+                "ping-probe %s: the host %s is not reachable.",
+                self.name,
+                ping_result.address,
             )
             return common.ProbeResult(None, packet_size, 0)
 
         elapsed_ms = ping_result.rtts[0]
 
         logger.info(
-            "ping-probe %s: received %d bytes after %.0f ms.",
+            "ping-probe %s: received %d bytes from %s after %.0f ms.",
             self.name,
-            64,
+            packet_size,
+            ping_result.address,
             elapsed_ms,
         )
 

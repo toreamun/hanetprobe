@@ -1,10 +1,13 @@
 """Probe service."""
+
 from __future__ import annotations
 
 import argparse
 import asyncio
 import collections
 import logging
+import logging.config
+import os
 import platform
 import signal
 from asyncio.events import AbstractEventLoop
@@ -15,13 +18,14 @@ import asyncio_paho
 import box
 import confuse  # type: ignore
 import paho.mqtt.client as paho  # type: ignore
+import yaml
 
 import common
 import dns_probe
 import ping_probe
 import publish
 
-VERSION: Final = "0.9.1"
+VERSION: Final = "0.9.3"
 
 CONF_PROBE_DNS: Final = "dns"
 CONF_PROBE_PING: Final = "ping"
@@ -53,7 +57,8 @@ CONF_TEMPLATE: Final = {
         "id": confuse.Optional(str, default=platform.node()),
         "name": confuse.Optional(str, default=DEFAULT_SERVICE_NAME),
         "log-level": confuse.Choice(
-            ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"], default=DEFAULT_LOG_LEVEL
+            ["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", None],
+            default=None,
         ),
     },
     "mqtt": {
@@ -88,7 +93,7 @@ CONF_TEMPLATE: Final = {
                 "publish-precision": confuse.Optional(
                     int, DEFAULT_PROBE_PUBLISH_PRECISION
                 ),
-                "privileged": confuse.Optional(bool, DEFAULT_PROBE_PING_PRIVILEGED)
+                "privileged": confuse.Optional(bool, DEFAULT_PROBE_PING_PRIVILEGED),
             }
         ),
     },
@@ -105,12 +110,15 @@ CONF_TEMPLATE: Final = {
             }
         ),
     },
+    "logging": confuse.Optional({}, default=None),
 }
 
 
 logging.basicConfig(format="%(levelname)7s: %(message)s")
 
 logger = logging.getLogger()
+
+shutdown_event = asyncio.Event()
 
 
 class ProbeService:  # pylint: disable=too-few-public-methods
@@ -258,6 +266,12 @@ class ProbeService:  # pylint: disable=too-few-public-methods
                     port=self._config.mqtt.port,
                 )
 
+                logger.info(
+                    "Connected to MQTT server %s on port %d",
+                    self._config.mqtt.host,
+                    self._config.mqtt.port,
+                )
+
                 # Paho mqtt will reconnect automatic when first connected
                 # add callbacks after initial connect
                 self._mqtt.on_disconnect = (
@@ -286,12 +300,11 @@ class ProbeService:  # pylint: disable=too-few-public-methods
             return
 
         service_online_sensor = publish.HassEntity(
-            self._mqtt,
-            publish.HASS_COMPONENT_BINARY_SENSOR,
-            self._node_id,
-            common.APPNAME,
-            None,
-            {
+            mqtt=self._mqtt,
+            component=publish.HASS_COMPONENT_BINARY_SENSOR,
+            node_id=self._node_id,
+            object_id=common.APPNAME,
+            hass_config={
                 publish.HASS_CONF_DEVICE_CLASS: publish.HASS_DEVICE_CLASS_CONNECTIVITY,
                 publish.HASS_CONF_ENTITY_CATEGORY: publish.HASS_ENTITY_CATEGORY_DIAGNOSTIC,
                 publish.HASS_CONF_DEVICE: {
@@ -302,6 +315,7 @@ class ProbeService:  # pylint: disable=too-few-public-methods
                     publish.HASS_ATTR_SW_VERSION: VERSION,
                 },
             },
+            update_interval=None,
         )
 
         self._configure_mqtt(service_online_sensor.state_topic)
@@ -343,6 +357,23 @@ def load_configuration(config_file: str) -> box.Box:
     config.set_file(config_file)
     template_config = config.get(CONF_TEMPLATE)
 
+    raw_config = yaml.safe_load(config.dump())
+    if "logging" in raw_config:
+        template_config["logging"] = raw_config["logging"]
+        if (
+            "log-level" in template_config.service
+            and template_config.service["log-level"] is not None
+        ):
+            logger.warning(
+                (
+                    "Logging configuration found in config file. Ignoring log-level "
+                    "setting %s from service setting."
+                ),
+                template_config.service["log-level"],
+            )
+    else:
+        template_config.service.log_level = DEFAULT_LOG_LEVEL
+
     config = box.Box(template_config, frozen_box=True)
     validate_config(config)
 
@@ -366,7 +397,7 @@ def validate_config(config: box.Box) -> None:
 
     check_duplicate_name(config.probes.dns, "dns probe")
     check_duplicate_name(config.probes.ping, "ping probe")
-    check_duplicate_name(config.compound.all_down, "compund all-down")
+    check_duplicate_name(config.compound.all_down, "compound all-down")
 
     dns_probes = [cfg.name for cfg in config.probes.dns]
     ping_probes = [cfg.name for cfg in config.probes.ping]
@@ -386,19 +417,29 @@ def validate_config(config: box.Box) -> None:
 
 async def shutdown(sig: signal.Signals, loop: AbstractEventLoop):
     """Cleanup tasks tied to the service's shutdown."""
-    logger.info("Received exit signal %s", sig.name)
+
+    if sig != signal.SIGHUP:
+        shutdown_event.set()
+
+    logger.info(
+        "Received %s signal from parent process %s. %s.",
+        sig.name,
+        os.getppid(),
+        "Restarting" if sig == signal.SIGHUP else "Shutting down",
+    )
 
     tasks = [
         t
         for t in asyncio.all_tasks(loop=loop)
         if t is not asyncio.current_task(loop=loop)
     ]
-    logger.info("Cancelling %d outstanding tasks", len(tasks))
-    for task in tasks:
-        task.cancel()
 
-    await asyncio.gather(*tasks, return_exceptions=True)
-    logger.debug("All tasks cancelled.")
+    if tasks:
+        logger.info("Cancelling %d outstanding tasks", len(tasks))
+        for task in tasks:
+            task.cancel()
+
+        logger.debug("All tasks cancelled.")
 
 
 async def main() -> None:
@@ -412,23 +453,41 @@ async def main() -> None:
     )
     args = parser.parse_args()
 
-    try:
-        config = load_configuration(args.config)
-    except confuse.ConfigError as err:
-        logger.error("Configuration error: %s", err)
-    else:
-        logger.setLevel(config.service.log_level)
+    loop = asyncio.get_running_loop()
+    for sig in signal.SIGHUP, signal.SIGTERM, signal.SIGINT:
+        loop.add_signal_handler(
+            sig, lambda s=sig: loop.create_task(shutdown(s, loop))  # type: ignore
+        )
 
-        loop = asyncio.get_running_loop()
-        signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
-        for sig in signals:
-            loop.add_signal_handler(
-                sig, lambda s=sig: loop.create_task(shutdown(s, loop))
-            )
+    while shutdown_event.is_set() is False:
+        try:
+            config = load_configuration(args.config)
+        except confuse.ConfigError as err:
+            logger.error("Configuration error: %s", err)
+            shutdown_event.set()
+        else:
+            try:
+                # Try to load logging configuration from config file if config exists
+                if config.logging is not None:
+                    logging.config.dictConfig(config.logging)
+                    logger.debug("Logging configuration updated from config file.")
+                else:
+                    logger.setLevel(config.service.log_level)
+                    logger.debug(
+                        "Using default logging configuration with level %s.",
+                        logger.level,
+                    )
 
-        service = ProbeService(loop, config)
-        await service.run()
-        logger.info("Successfully shutdown.")
+            except (ValueError, TypeError, AttributeError, ImportError) as err:
+                logger.error("Logging configuration error: %s", err)
+                shutdown_event.set()
+            else:
+                logger.info("Starting probe service...")
+
+                service = ProbeService(loop, config)
+                await service.run()
+
+                logger.info("Successfully stopped.")
 
 
 if __name__ == "__main__":
