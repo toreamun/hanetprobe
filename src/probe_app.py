@@ -394,7 +394,7 @@ def validate_config(config: box.Box) -> None:
 
     check_duplicate_name(config.probes.dns, "dns probe")
     check_duplicate_name(config.probes.ping, "ping probe")
-    check_duplicate_name(config.compound.all_down, "compund all-down")
+    check_duplicate_name(config.compound.all_down, "compound all-down")
 
     dns_probes = [cfg.name for cfg in config.probes.dns]
     ping_probes = [cfg.name for cfg in config.probes.ping]
